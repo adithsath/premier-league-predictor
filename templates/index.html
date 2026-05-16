@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Premier League Match Predictor
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+<body>
+
+    <div class="overlay"></div>
+
+    <div class="container">
+
+        <h1 class="title">
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg"
+                class="premier-logo"
+            >
+
+            PREMIER LEAGUE MATCH PREDICTOR
+
+        </h1>
+
+        <p class="subtitle">
+
+            AI Powered Football Analytics
+
+        </p>
+
+        <!-- TEAM SELECTION -->
+
+        <div class="teams-container">
+
+            <!-- HOME -->
+
+            <div class="team-box">
+
+                <label>
+
+                    HOME TEAM
+
+                </label>
+
+                <select id="homeTeam">
+
+                    <option
+                        value=""
+                        disabled
+                        selected
+                    >
+
+                        Select Home Team
+
+                    </option>
+
+                    {% for team in teams %}
+
+                    <option value="{{ team }}">
+
+                        {{ team }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <div class="vs-text">
+
+                VS
+
+            </div>
+
+            <!-- AWAY -->
+
+            <div class="team-box">
+
+                <label>
+
+                    AWAY TEAM
+
+                </label>
+
+                <select id="awayTeam">
+
+                    <option
+                        value=""
+                        disabled
+                        selected
+                    >
+
+                        Select Away Team
+
+                    </option>
+
+                    {% for team in teams %}
+
+                    <option value="{{ team }}">
+
+                        {{ team }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <button onclick="predictMatch()">
+
+            Predict Match
+
+        </button>
+
+        <!-- RESULT -->
+
+        <div id="resultBox"></div>
+
+    </div>
+
+    <script>
+
+        async function predictMatch() {
+
+            const homeTeam =
+                document.getElementById("homeTeam").value;
+
+            const awayTeam =
+                document.getElementById("awayTeam").value;
+
+            if (!homeTeam || !awayTeam) {
+
+                alert("Please select both teams");
+
+                return;
+            }
+
+            const response = await fetch("/predict", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    home_team: homeTeam,
+
+                    away_team: awayTeam
+
+                })
+
+            });
+
+            const data = await response.json();
+
+            document.getElementById("resultBox").innerHTML = `
+
+            <div class="modern-result">
+
+                <!-- TEAMS -->
+
+                <div class="teams-display">
+
+                    <div class="team">
+
+                        <img src="${data.home_logo}">
+
+                        <h2>${homeTeam}</h2>
+
+                    </div>
+
+                    <div class="score-prediction">
+
+                        ${data.home_score}
+                        -
+                        ${data.away_score}
+
+                    </div>
+
+                    <div class="team">
+
+                        <img src="${data.away_logo}">
+
+                        <h2>${awayTeam}</h2>
+
+                    </div>
+
+                </div>
+
+                <!-- PREDICTION -->
+
+                <h1 class="main-result-text">
+
+                    ${data.prediction}
+
+                </h1>
+
+                <!-- PROBABILITY -->
+
+                <div class="probability-grid">
+
+                    <div class="prob-card">
+
+                        <h3>${homeTeam}</h3>
+
+                        <h1>${data.home_prob}%</h1>
+
+                    </div>
+
+                    <div class="prob-card">
+
+                        <h3>Draw</h3>
+
+                        <h1>${data.draw_prob}%</h1>
+
+                    </div>
+
+                    <div class="prob-card">
+
+                        <h3>${awayTeam}</h3>
+
+                        <h1>${data.away_prob}%</h1>
+
+                    </div>
+
+                </div>
+
+                <!-- FORM -->
+
+                <div class="form-grid">
+
+                    <div class="form-card">
+
+                        <h2>${homeTeam}</h2>
+
+                        <p>${data.home_form}</p>
+
+                    </div>
+
+                    <div class="form-card">
+
+                        <h2>${awayTeam}</h2>
+
+                        <p>${data.away_form}</p>
+
+                    </div>
+
+                </div>
+
+                <!-- STATS -->
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <h1>${data.total_matches}</h1>
+
+                        <p>Total Matches</p>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <h1>${data.home_wins}</h1>
+
+                        <p>${homeTeam} Wins</p>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <h1>${data.away_wins}</h1>
+
+                        <p>${awayTeam} Wins</p>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <h1>${data.draws}</h1>
+
+                        <p>Draws</p>
+
+                    </div>
+
+                </div>
+
+                <!-- RECENT MATCHES -->
+
+                <div class="recent-section">
+
+                    <h2>
+
+                        📅 Recent Matches
+
+                    </h2>
+
+                    ${data.recent_matches.map(match => `
+
+                        <div class="recent-match-row">
+
+                            <span>
+
+                                ${match.home}
+
+                            </span>
+
+                            <span class="score-text">
+
+                                ${match.score}
+
+                            </span>
+
+                            <span>
+
+                                ${match.away}
+
+                            </span>
+
+                        </div>
+
+                    `).join('')}
+
+                </div>
+
+                <!-- AI INSIGHT -->
+
+                <div class="insight-box">
+
+                    <h2>
+
+                        🧠 AI Match Insight
+
+                    </h2>
+
+                    <p>
+
+                        ${data.insight}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            `;
+        }
+
+    </script>
+
+</body>
+
+</html>
